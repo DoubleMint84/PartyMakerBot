@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using PartyMakerBot.Model;
 
 namespace PartyMakerBot.Service;
@@ -8,12 +9,15 @@ public class QueueManager
     private readonly ConcurrentQueue<QueueItem> _queue = new();
     private int _counter = 0; 
     private readonly object _snapshotLock = new();
+    
+    public event Action? ItemEnqueued;
 
     public QueueItem Enqueue(string url, TelegramUser owner)
     {
         var index = Interlocked.Increment(ref _counter);
         var item = new QueueItem(index, url, owner, DateTimeOffset.UtcNow);
         _queue.Enqueue(item);
+        ItemEnqueued?.Invoke();
         return item;
     }
     
@@ -21,6 +25,18 @@ public class QueueManager
     {
         var arr = _queue.ToArray();
         return arr.OrderBy(i => i.Index).ToList();
+    }
+
+    public bool GetNext([MaybeNullWhen(false)] out QueueItem item)
+    {
+        if (_queue.TryDequeue(out var queueItem))
+        {
+            item = queueItem;
+            return true;
+        }
+
+        item = null;
+        return false;
     }
     
     public (bool Success, string? ErrorMessage) TryRemoveByIndex(int index, TelegramUser requester)

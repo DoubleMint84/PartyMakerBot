@@ -81,7 +81,9 @@ public class CommandHandler(ITelegramBotClient client, QueueManager queueManager
         }
 
         var item = queueManager.Enqueue(uriResult.ToString(), user);
-        await client.SendMessage(chatId, $"Добавлено в очередь под индексом #{item.Index} — {item.Url}");
+        var linkPreviewOptions = new LinkPreviewOptions { IsDisabled = true };
+        await client.SendMessage(chatId, $"Добавлено в очередь под индексом #{item.Index} — {item.Url}", 
+            linkPreviewOptions: linkPreviewOptions);
     }
 
     private async Task HandleQueue(long chatId)
@@ -100,11 +102,12 @@ public class CommandHandler(ITelegramBotClient client, QueueManager queueManager
             var userNameEscaped = HtmlEscape(item.Owner.DisplayName);
             var addedAt = item.AddedAt.ToString("yyyy-MM-dd HH:mm:ss");
             lines.Add(
-                $"<b>#{item.Index}</b> {addedAt}\n<a href=\"{item.Url}\">{ShortenUrl(item.Url)}</a>\n— {userNameEscaped} (id {item.Owner.Id})");
+                $"<b>#{item.Index}</b> {addedAt}\n<a href=\"{item.Url}\">{Path.GetFileName(item.FilePath)}</a>\n— {userNameEscaped} (id {item.Owner.Id})");
         }
 
         var message = string.Join("\n\n", lines);
-        await client.SendMessage(chatId, message, ParseMode.Html/*, disableWebPagePreview: true*/);
+        var linkPreviewOptions = new LinkPreviewOptions { IsDisabled = true };
+        await client.SendMessage(chatId, message, ParseMode.Html, linkPreviewOptions: linkPreviewOptions);
     }
 
     private async Task HandleRemove(long chatId, TelegramUser user, string arg)

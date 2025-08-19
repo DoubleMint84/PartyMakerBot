@@ -14,13 +14,24 @@ namespace PartyMakerBot
                 return;
             }
             
-            var botClient = new TelegramBotClient(token);
             var queueManager = new QueueManager();
-            var commandHandler = new CommandHandler(botClient, queueManager);
-            var botService = new BotService(botClient, commandHandler);
-
+            
             Console.WriteLine("Запуск бота...");
-            await botService.StartAsync();
+            
+            var botServiceTask = Task.Run(async () =>
+            {
+                var botClient = new TelegramBotClient(token);
+                var commandHandler = new CommandHandler(botClient, queueManager);
+                var botService = new BotService(botClient, commandHandler);
+                await botService.StartAsync();
+            });
+            
+            Console.WriteLine("Запуск службы загрузки...");
+            var downloader = new DownloadService(queueManager);
+            downloader.Start();
+
+            Console.WriteLine("Инициализация завершена.");
+            await botServiceTask;
         }
     }
 }
