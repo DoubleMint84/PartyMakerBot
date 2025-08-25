@@ -74,7 +74,12 @@ public class DownloadService
 
         if (!res.Success)
         {
-            Console.Error.WriteLine(res.ErrorOutput);
+            Console.Error.WriteLine("yt-dlp failed to download. Error output:");
+            foreach (var line in res.ErrorOutput)
+            {
+                Console.Error.WriteLine(line);
+            }
+            
             return null;
         }
         
