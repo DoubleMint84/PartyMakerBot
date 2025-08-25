@@ -29,6 +29,10 @@ namespace PartyMakerBot
             Console.WriteLine("Запуск службы загрузки...");
             var downloader = new DownloadService(queueManager);
             downloader.Start();
+            
+            Console.WriteLine("Запуск службы проигрывателя...");
+            var player = new PlayerService(queueManager);
+            player.Start();
 
             Console.WriteLine("Инициализация завершена.");
             await botServiceTask;

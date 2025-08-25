@@ -29,7 +29,7 @@ public class QueueManager
 
     public bool GetNext([MaybeNullWhen(false)] out QueueItem item)
     {
-        if (_queue.TryDequeue(out var queueItem))
+        if (_queue.TryPeek(out var result) && result.IsDownloaded && _queue.TryDequeue(out var queueItem))
         {
             item = queueItem;
             return true;
