@@ -11,6 +11,7 @@ public class QueueManager
     private readonly object _snapshotLock = new();
     
     public event Action? ItemEnqueued;
+    public event Action? QueueChanged;
 
     public QueueItem Enqueue(string url, TelegramUser owner)
     {
@@ -18,6 +19,7 @@ public class QueueManager
         var item = new QueueItem(index, url, owner, DateTimeOffset.UtcNow);
         _queue.Enqueue(item);
         ItemEnqueued?.Invoke();
+        QueueChanged?.Invoke();
         return item;
     }
     
@@ -32,6 +34,7 @@ public class QueueManager
         if (_queue.TryPeek(out var result) && result.IsDownloaded && _queue.TryDequeue(out var queueItem))
         {
             item = queueItem;
+            QueueChanged?.Invoke();
             return true;
         }
 
@@ -63,6 +66,8 @@ public class QueueManager
             foreach (var i in newQ)
                 _queue.Enqueue(i);
 
+            QueueChanged?.Invoke();
+            
             return (true, null);
         }
     }

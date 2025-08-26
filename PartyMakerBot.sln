@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PartyMakerBot", "PartyMakerBot\PartyMakerBot.csproj", "{EF5635AA-86B2-4D55-AE0B-2C02EA51F967}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PartyMakerBot.UI", "PartyMakerBot.UI\PartyMakerBot.UI.csproj", "{AA8B3862-6F89-449F-A314-24730558B2CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{EF5635AA-86B2-4D55-AE0B-2C02EA51F967}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF5635AA-86B2-4D55-AE0B-2C02EA51F967}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF5635AA-86B2-4D55-AE0B-2C02EA51F967}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA8B3862-6F89-449F-A314-24730558B2CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA8B3862-6F89-449F-A314-24730558B2CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA8B3862-6F89-449F-A314-24730558B2CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA8B3862-6F89-449F-A314-24730558B2CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
