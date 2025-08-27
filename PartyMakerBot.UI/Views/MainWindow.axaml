@@ -12,8 +12,6 @@
         Height="700">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
@@ -26,24 +24,46 @@
                    FontSize="15" 
                    TextAlignment="Left" 
                    Margin="0,0,0,10"/>
-        <DataGrid ItemsSource="{Binding Path=QueueItems}" 
-                  IsReadOnly="True"
-                  CanUserReorderColumns="False"
-                  CanUserResizeColumns="True"
-                  CanUserSortColumns="False"
-                  GridLinesVisibility="All"
-                  BorderThickness="1" 
-                  BorderBrush="Gray" 
-                  Height="550">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="#" Binding="{Binding Path=Index}" Width="70"/>
-                <DataGridTextColumn Header="URL" Binding="{Binding Path=Url}" Width="300"/>
-                <DataGridTextColumn Header="Пользователь" Binding="{Binding Path=OwnerDisplayName}" Width="200"/>
-                <DataGridTextColumn Header="Добавлено" Binding="{Binding Path=AddedAt}" Width="200"/>
-                <DataGridTextColumn Header="Файл" Binding="{Binding Path=FilePath}" Width="*"/>
-            </DataGrid.Columns>
-        </DataGrid>
-        
+        <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding Path=QueueItems}" 
+                          BorderThickness="1" 
+                          BorderBrush="Gray" 
+                          Height="550">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="vm:QueueItemViewModel">
+                        <Border Margin="5,5,5,0"
+                                CornerRadius="3"
+                                BorderBrush="Gray"
+                                BorderThickness="1"
+                                Padding="5">
+                            <Grid ColumnDefinitions="30,2*,*,*,3*">
+                                <TextBlock Text="{Binding Path=Index}" 
+                                           FontSize="13"
+                                           Margin="2"/>
+                                <TextBlock Grid.Column="1" 
+                                           Text="{Binding Path=Url}" 
+                                           FontSize="13"
+                                           Margin="2"/>
+                                <TextBlock Grid.Column="2" 
+                                           Text="{Binding Path=OwnerDisplayName}" 
+                                           FontSize="13"
+                                           HorizontalAlignment="Center"
+                                           Margin="2"/>
+                                <TextBlock Grid.Column="3" 
+                                           Text="{Binding Path=AddedAt}" 
+                                           FontSize="13"
+                                           HorizontalAlignment="Center"
+                                           Margin="2"/>
+                                <TextBlock Grid.Column="4" 
+                                           Text="{Binding Path=FilePath}" 
+                                           FontSize="13"
+                                           Margin="2"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
         <Button Content="Update" 
                 HorizontalContentAlignment="Center" 
                 Command="{Binding RefreshCommand}" 
