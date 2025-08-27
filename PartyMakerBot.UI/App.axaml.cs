@@ -29,24 +29,25 @@ public partial class App : Application
             }
             
             var queueManager = new QueueManager();
-            var mainWindowViewModel = new MainWindowViewModel(queueManager);
+            var downloader = new DownloadService(queueManager);
+            var player = new PlayerService(queueManager);
+            
+            var mainWindowViewModel = new MainWindowViewModel(queueManager, player);
             
             Console.WriteLine("Запуск бота...");
             
             Task.Run(async () =>
             {
                 var botClient = new TelegramBotClient(token);
-                var commandHandler = new CommandHandler(botClient, queueManager);
+                var commandHandler = new CommandHandler(botClient, queueManager, player);
                 var botService = new BotService(botClient, commandHandler);
                 await botService.StartAsync();
             });
             
             Console.WriteLine("Запуск службы загрузки...");
-            var downloader = new DownloadService(queueManager);
             downloader.Start();
             
             Console.WriteLine("Запуск службы проигрывателя...");
-            var player = new PlayerService(queueManager);
             player.Start();
 
             Console.WriteLine("Инициализация завершена.");

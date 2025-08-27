@@ -12,17 +12,32 @@ namespace PartyMakerBot.UI.ViewModels;
 public class MainWindowViewModel : ViewModelBase
 {
     private readonly QueueManager _queueManager;
+    private readonly PlayerService _playerService;
 
     public ObservableCollection<QueueItemViewModel> QueueItems { get; } = new();
+    private string _nowPlaying = "";
+
+    public string NowPlaying
+    {
+        get => _nowPlaying;
+        private set
+        {
+            string status = value != "" ? $"Now Playing: {value}" : "Ready To Play"; ;
+            this.RaiseAndSetIfChanged(ref _nowPlaying, status);
+        }
+    }
 
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
 
-    public MainWindowViewModel(QueueManager queueManager)
+    public MainWindowViewModel(QueueManager queueManager, PlayerService playerService)
     {
         _queueManager = queueManager;
+        _playerService = playerService;
+        
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshQueueAsync);
         
         _queueManager.QueueChanged += async () => await RefreshQueueAsync();
+        _playerService.NowPlayingChanged += () => NowPlaying = _playerService.NowPlaying;
 
         // Начальная загрузка
         _ = RefreshQueueAsync();

@@ -15,23 +15,23 @@ namespace PartyMakerBot
             }
             
             var queueManager = new QueueManager();
+            var downloader = new DownloadService(queueManager);
+            var player = new PlayerService(queueManager);
             
             Console.WriteLine("Запуск бота...");
             
             var botServiceTask = Task.Run(async () =>
             {
                 var botClient = new TelegramBotClient(token);
-                var commandHandler = new CommandHandler(botClient, queueManager);
+                var commandHandler = new CommandHandler(botClient, queueManager, player);
                 var botService = new BotService(botClient, commandHandler);
                 await botService.StartAsync();
             });
             
             Console.WriteLine("Запуск службы загрузки...");
-            var downloader = new DownloadService(queueManager);
             downloader.Start();
             
             Console.WriteLine("Запуск службы проигрывателя...");
-            var player = new PlayerService(queueManager);
             player.Start();
 
             Console.WriteLine("Инициализация завершена.");

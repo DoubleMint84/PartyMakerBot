@@ -22,6 +22,10 @@
                    FontSize="20" 
                    TextAlignment="Center" 
                    Margin="0,0,0,10"/>
+        <TextBlock Text="{Binding Path=NowPlaying}" 
+                   FontSize="15" 
+                   TextAlignment="Left" 
+                   Margin="0,0,0,10"/>
         <DataGrid ItemsSource="{Binding Path=QueueItems}" 
                   IsReadOnly="True"
                   CanUserReorderColumns="False"

@@ -11,6 +11,10 @@ public class PlayerService
 
     private readonly CancellationTokenSource _cts = new();
 
+    private string? _nowPlaying = null;
+    public string NowPlaying { get => _nowPlaying ?? "ничего"; }
+    public event Action? NowPlayingChanged;
+
     public PlayerService(QueueManager manager)
     {
         _queueManager = manager;
@@ -29,6 +33,7 @@ public class PlayerService
             if (_queueManager.GetNext(out var queueItem))
             {
                 Console.WriteLine($"Playing {Path.GetFileName(queueItem.FilePath)}");
+                ChangeNowPlaying(Path.GetFileName(queueItem.FilePath));
                 using (Process process = new())
                 {
                     process.StartInfo = new ProcessStartInfo
@@ -54,12 +59,19 @@ public class PlayerService
                                        Error: {error}
                                        """);
                 }
+                ChangeNowPlaying(null);
             }
             else
             {
                 await Task.Delay(5000, _cts.Token);
             }
         }
+    }
+
+    private void ChangeNowPlaying(string? newValue)
+    {
+        _nowPlaying = newValue;
+        NowPlayingChanged?.Invoke();
     }
 
     public void Stop()

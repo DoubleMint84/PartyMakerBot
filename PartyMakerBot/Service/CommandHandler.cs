@@ -5,7 +5,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace PartyMakerBot.Service;
 
-public class CommandHandler(ITelegramBotClient client, QueueManager queueManager)
+public class CommandHandler(ITelegramBotClient client, QueueManager queueManager, PlayerService playerService)
 {
     public async Task ProcessMessageAsync(Message message)
     {
@@ -29,10 +29,11 @@ public class CommandHandler(ITelegramBotClient client, QueueManager queueManager
                 await client.SendMessage(chatId,
                     $"""
                      Привет, {user.DisplayName}!
-                     Меня зовут PartyMakerBot, но пока что я умею только пушить ссылки в очередь...
-                     Добавьте ссылку командой: /add https://example.com
+                     Меня зовут PartyMakerBot - музыкальная очередь для вечеринок и тусовок :)
+                     Добавьте ссылку на музыку с Youtube командой: /add <url>
                      Просмотреть очередь: /queue
-                     Для справки: /help
+                     Показать, что сейчас играет: /now
+                     Для справки по остальным командам: /help
                      """);
                 break;
 
@@ -41,6 +42,7 @@ public class CommandHandler(ITelegramBotClient client, QueueManager queueManager
                     """
                     Команды:
                     /add <url> - добавить URL в очередь
+                    /now - показать, что сейчас играет
                     /queue - показать очередь
                     /remove <index> - удалить свой элемент по индексу (если ваш)
                     /help - показать эту подсказку
@@ -54,13 +56,17 @@ public class CommandHandler(ITelegramBotClient client, QueueManager queueManager
             case "/queue":
                 await HandleQueue(chatId);
                 break;
+            
+            case "/now":
+                await HandleNow(chatId);
+                break;
 
             case "/remove":
                 await HandleRemove(chatId, user, arg);
                 break;
 
             default:
-                await client.SendMessage(chatId, $"Неизвестная команда {cmd}. Введите /help.");
+                await client.SendMessage(chatId, $"Неизвестная команда '{cmd}'. Введите /help для помощи по командам.");
                 break;
         }
     }
@@ -97,6 +103,7 @@ public class CommandHandler(ITelegramBotClient client, QueueManager queueManager
         }
         
         var lines = new List<string>();
+        lines.Add($"Сейчас играет: <b>{playerService.NowPlaying}</b>");
         foreach (var item in snapshot)
         {
             var userNameEscaped = HtmlEscape(item.Owner.DisplayName);
@@ -108,6 +115,11 @@ public class CommandHandler(ITelegramBotClient client, QueueManager queueManager
         var message = string.Join("\n\n", lines);
         var linkPreviewOptions = new LinkPreviewOptions { IsDisabled = true };
         await client.SendMessage(chatId, message, ParseMode.Html, linkPreviewOptions: linkPreviewOptions);
+    }
+    
+    private async Task HandleNow(long chatId)
+    {
+        await client.SendMessage(chatId, $"Сейчас играет: {playerService.NowPlaying}");
     }
 
     private async Task HandleRemove(long chatId, TelegramUser user, string arg)
