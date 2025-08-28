@@ -28,6 +28,7 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
+    public ReactiveCommand<QueueItemViewModel, Unit> RemoveItemCommand { get; }
 
     public MainWindowViewModel(QueueManager queueManager, PlayerService playerService)
     {
@@ -35,6 +36,7 @@ public class MainWindowViewModel : ViewModelBase
         _playerService = playerService;
         
         RefreshCommand = ReactiveCommand.CreateFromTask(RefreshQueueAsync);
+        RemoveItemCommand = ReactiveCommand.Create<QueueItemViewModel>(RemoveItemAsync);
         
         _queueManager.QueueChanged += async () => await RefreshQueueAsync();
         _playerService.NowPlayingChanged += () => NowPlaying = _playerService.NowPlaying;
@@ -55,5 +57,10 @@ public class MainWindowViewModel : ViewModelBase
                 QueueItems.Add(new QueueItemViewModel(item));
             }
         }).GetTask();
+    }
+
+    private void RemoveItemAsync(QueueItemViewModel item)
+    {
+       _queueManager.TryRemoveByIndex(item.Index);
     }
 }

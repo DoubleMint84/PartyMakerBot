@@ -42,7 +42,7 @@ public class QueueManager
         return false;
     }
     
-    public (bool Success, string? ErrorMessage) TryRemoveByIndex(int index, TelegramUser requester)
+    public (bool Success, string? ErrorMessage) TryRemoveByIndex(int index, TelegramUser? requester = null)
     {
         lock (_snapshotLock)
         {
@@ -51,7 +51,7 @@ public class QueueManager
             if (target == null)
                 return (false, "Элемент не найден.");
 
-            if (target.Owner.Id != requester.Id)
+            if (requester != null && target.Owner.Id != requester.Id)
                 return (false, "Можно удалять только собственные элементы.");
             
             var newQ = new ConcurrentQueue<QueueItem>();

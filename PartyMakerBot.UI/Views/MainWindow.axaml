@@ -36,7 +36,7 @@
                                 BorderBrush="Gray"
                                 BorderThickness="1"
                                 Padding="5">
-                            <Grid ColumnDefinitions="30,2*,*,*,3*">
+                            <Grid ColumnDefinitions="30,2*,*,*,3*,40">
                                 <TextBlock Text="{Binding Path=Index}" 
                                            FontSize="13"
                                            Margin="2"/>
@@ -58,6 +58,9 @@
                                            Text="{Binding Path=FilePath}" 
                                            FontSize="13"
                                            Margin="2"/>
+                                <Button Grid.Column="5"
+                                        Command="{Binding ((vm:MainWindowViewModel)DataContext).RemoveItemCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}">Delete</Button>
                             </Grid>
                         </Border>
                     </DataTemplate>
