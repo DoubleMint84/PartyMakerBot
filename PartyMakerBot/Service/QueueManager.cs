@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using PartyMakerBot.Data;
 using PartyMakerBot.Model;
 
 namespace PartyMakerBot.Service;
@@ -8,15 +9,43 @@ public class QueueManager
 {
     private readonly ConcurrentQueue<QueueItem> _queue = new();
     private int _counter = 0; 
+    private readonly AppDbContext _db;
     private readonly object _snapshotLock = new();
     
     public event Action? ItemEnqueued;
     public event Action? QueueChanged;
 
+    public QueueManager(AppDbContext db)
+    {
+        _db = db ?? throw new ArgumentNullException(nameof(db));
+        EnsureDatabaseAndLoad();
+    }
+    
+    private void EnsureDatabaseAndLoad()
+    {
+        lock (_snapshotLock)
+        {
+            _db.Database.EnsureCreated();
+            var maxIndex = _db.QueueItems.Any() ? _db.QueueItems.Max(x => x.Index) : 0;
+            _counter = maxIndex;
+        
+            var items = _db.QueueItems
+                .Where(x => !x.IsPlayed)
+                .OrderBy(x => x.Index)
+                .ToList();
+            
+            foreach (var item in items)
+                _queue.Enqueue(item);
+        }
+    }
+
     public QueueItem Enqueue(string url, TelegramUser owner)
     {
         var index = Interlocked.Increment(ref _counter);
         var item = new QueueItem(index, url, owner, DateTimeOffset.UtcNow);
+        _db.QueueItems.Add(item);
+        _db.SaveChanges();
+        
         _queue.Enqueue(item);
         ItemEnqueued?.Invoke();
         QueueChanged?.Invoke();
@@ -46,14 +75,17 @@ public class QueueManager
     {
         lock (_snapshotLock)
         {
-            var items = _queue.ToArray();
-            var target = items.FirstOrDefault(i => i.Index == index);
+            var target = _db.QueueItems.FirstOrDefault(x => x.Index == index && !x.IsPlayed);
             if (target == null)
                 return (false, "Элемент не найден.");
 
-            if (requester != null && target.Owner.Id != requester.Id)
+            if (requester != null && target.OwnerId != requester.Id)
                 return (false, "Можно удалять только собственные элементы.");
             
+            target.IsPlayed = true;
+            _db.SaveChanges();
+            
+            var items = _queue.ToArray();
             var newQ = new ConcurrentQueue<QueueItem>();
             foreach (var i in items)
             {
@@ -69,6 +101,18 @@ public class QueueManager
             QueueChanged?.Invoke();
             
             return (true, null);
+        }
+    }
+    
+    public bool MarkPlayed(int index)
+    {
+        lock (_snapshotLock)
+        {
+            var target = _db.QueueItems.FirstOrDefault(x => x.Index == index && !x.IsPlayed);
+            if (target == null) return false;
+            target.IsPlayed = true;
+            _db.SaveChanges();
+            return true;
         }
     }
 }

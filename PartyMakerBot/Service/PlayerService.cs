@@ -59,6 +59,8 @@ public class PlayerService
                                        Error: {error}
                                        """);
                 }
+
+                _queueManager.MarkPlayed(queueItem.Index);
                 ChangeNowPlaying(null);
             }
             else

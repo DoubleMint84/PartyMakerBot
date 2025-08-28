@@ -7,7 +7,7 @@ public class QueueItemViewModel(QueueItem model) : ViewModelBase
 {
     public int Index { get; } = model.Index;
     public string Url { get; } = model.Url;
-    public string OwnerDisplayName { get; } = model.Owner.DisplayName;
+    public string OwnerDisplayName { get; } = model.OwnerDisplayName;
     public string AddedAt { get; } = model.AddedAt.ToString("yyyy-MM-dd HH:mm:ss");
 
     public string FilePath { get; } = model.FilePath ?? "No";

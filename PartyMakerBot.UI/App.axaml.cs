@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using PartyMakerBot.Data;
 using PartyMakerBot.Service;
 using PartyMakerBot.UI.ViewModels;
 using PartyMakerBot.UI.Views;
@@ -28,8 +29,10 @@ public partial class App : Application
                 Environment.Exit(-1);
             }
             
-            var queueManager = new QueueManager();
-            var downloader = new DownloadService(queueManager);
+            var dbPath = "Data Source=queue.db"; 
+            var db = new AppDbContext(dbPath);
+            var queueManager = new QueueManager(db);
+            var downloader = new DownloadService(queueManager, db);
             var player = new PlayerService(queueManager);
             
             var mainWindowViewModel = new MainWindowViewModel(queueManager, player);

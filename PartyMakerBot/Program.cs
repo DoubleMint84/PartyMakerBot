@@ -1,4 +1,5 @@
-﻿using PartyMakerBot.Service;
+﻿using PartyMakerBot.Data;
+using PartyMakerBot.Service;
 using Telegram.Bot;
 
 namespace PartyMakerBot
@@ -14,8 +15,10 @@ namespace PartyMakerBot
                 return;
             }
             
-            var queueManager = new QueueManager();
-            var downloader = new DownloadService(queueManager);
+            var dbPath = "Data Source=queue.db";
+            var db = new AppDbContext(dbPath);
+            var queueManager = new QueueManager(db);
+            var downloader = new DownloadService(queueManager, db);
             var player = new PlayerService(queueManager);
             
             Console.WriteLine("Запуск бота...");

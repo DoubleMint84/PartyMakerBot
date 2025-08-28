@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using PartyMakerBot.Data;
+using PartyMakerBot.Model;
 using YoutubeDLSharp;
 using YoutubeDLSharp.Options;
 
@@ -7,15 +9,33 @@ namespace PartyMakerBot.Service;
 public class DownloadService
 {
     private readonly QueueManager _queueManager;
-    private readonly ConcurrentDictionary<string, string> _cache = new(); // url -> file path
+    private readonly AppDbContext _db;
+    private readonly ConcurrentDictionary<string, DownloadedUrl> _cache = new(); // url -> file path
     private readonly SemaphoreSlim _signal = new(0);
+    private readonly object _snapshotLock = new();
 
     private readonly CancellationTokenSource _cts = new();
 
-    public DownloadService(QueueManager queueManager)
+    public DownloadService(QueueManager queueManager, AppDbContext dbContext)
     {
         _queueManager = queueManager;
         _queueManager.ItemEnqueued += () => _signal.Release();
+        
+        _db = dbContext;
+        EnsureDatabaseAndLoadCache();
+    }
+
+    private void EnsureDatabaseAndLoadCache()
+    {
+        lock (_snapshotLock)
+        {
+            _db.Database.EnsureCreated();
+        
+            var urls = _db.DownloadedUrls.ToList();
+            
+            foreach (var item in urls)
+                if (item.LocalPath != null) _cache[item.Url] = item;
+        }
     }
 
     public void Start()
@@ -32,9 +52,9 @@ public class DownloadService
             var snapshot = _queueManager.GetSnapshot();
             foreach (var item in snapshot.Where(i => !i.IsDownloaded))
             {
-                if (_cache.TryGetValue(item.Url, out var existingPath))
+                if (_cache.TryGetValue(item.Url, out var downloadedUrl))
                 {
-                    item.MarkDownloaded(existingPath);
+                    item.DownloadedUrl = downloadedUrl;
                 }
                 else
                 {
@@ -43,8 +63,21 @@ public class DownloadService
                         var path = await DownloadFileAsync(item.Url);
                         if (path != null)
                         {
-                            item.MarkDownloaded(path);
-                            _cache[item.Url] = path;
+                            var url = new DownloadedUrl
+                            {
+                                LocalPath = path,
+                                DownloadedAt = DateTimeOffset.Now,
+                                Url = item.Url,
+                            };
+
+                            lock (_snapshotLock)
+                            {
+                                _db.DownloadedUrls.Add(url);
+                                _db.SaveChanges();
+                            }
+                            
+                            item.DownloadedUrl = url;
+                            _cache[item.Url] = url;
                         }
                     }
                     catch (Exception ex)

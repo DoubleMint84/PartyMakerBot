@@ -106,10 +106,10 @@ public class CommandHandler(ITelegramBotClient client, QueueManager queueManager
         lines.Add($"Сейчас играет: <b>{playerService.NowPlaying}</b>");
         foreach (var item in snapshot)
         {
-            var userNameEscaped = HtmlEscape(item.Owner.DisplayName);
+            var userNameEscaped = HtmlEscape(item.OwnerDisplayName);
             var addedAt = item.AddedAt.ToString("yyyy-MM-dd HH:mm:ss");
             lines.Add(
-                $"<b>#{item.Index}</b> {addedAt}\n<a href=\"{item.Url}\">{Path.GetFileName(item.FilePath)}</a>\n— {userNameEscaped} (id {item.Owner.Id})");
+                $"<b>#{item.Index}</b> {addedAt}\n<a href=\"{item.Url}\">{Path.GetFileName(item.FilePath)}</a>\n— {userNameEscaped} (id {item.OwnerId})");
         }
 
         var message = string.Join("\n\n", lines);
